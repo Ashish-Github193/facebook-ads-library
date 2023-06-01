@@ -1,3 +1,5 @@
 myenv/
-data/results.csv
+*__pycache__
+*tempCodeRunnerFile.python
+cspell.json
 data/results.csv

@@ -1,14 +1,17 @@
 # Modules
-from time import sleep
+from time                            import sleep
 from selenium.webdriver.common.by    import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support      import expected_conditions as EC
 
-# User defined functions
+# Defined functions
+from scraper.get_total_results       import get_total_found_results
 from utils.utils_date_operations     import *
 from utils.utils_initialise_function import *
+from utils_scrape_data               import scrape_data
 from utils.utils_frequent_function   import check_if_more_data_available
-from utils_scrape_data               import get_total_results, scrape_data, write_list_of_dicts_to_csv
+from utils.utils_extras              import get_headers_for_saving_data, write_list_of_dicts_to_csv
+
 
 # initializing global variables
 COUNTRY = "IN"
@@ -54,8 +57,7 @@ while check_if_start_is_bigger(start_date=start_date_max_itr, end_date=END_DATE)
 
     # creating global variables
     advertiser_block_iteration_index     = 1
-    advertiser_block_iteration_max_index = get_total_results(driver=driver)
-    csv_column_names                     = ['Name', 'Description', 'Website', 'Facebook', 'Instagram', 'Messenger', 'Audience Network']
+    advertiser_block_iteration_max_index = get_total_found_results (driver=driver)
     chunk_of_advertiser_data             = []
 
     # check if no companies found
@@ -75,14 +77,14 @@ while check_if_start_is_bigger(start_date=start_date_max_itr, end_date=END_DATE)
 
         # scrape data
         for advertiser_data in scrape_data(driver=driver,
-                                        index=advertiser_block_iteration_index,
-                                        number_of_elements=30):
+                                           index=advertiser_block_iteration_index,
+                                           number_of_elements=30):
 
-            chunk_of_advertiser_data.append(advertiser_data)
+            if advertiser_data is not None: chunk_of_advertiser_data.append(advertiser_data)
             advertiser_block_iteration_index += 1
 
         # write scraped data into csv file and clear data list
-        write_list_of_dicts_to_csv(headers=csv_column_names,
+        write_list_of_dicts_to_csv(headers=get_headers_for_saving_data(),
                                    data_list=chunk_of_advertiser_data,
                                    filename=DATA_FOLDER_NAME+filename)
         chunk_of_advertiser_data = []
