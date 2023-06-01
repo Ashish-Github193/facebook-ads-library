@@ -43,12 +43,44 @@ def get_total_results (driver: webdriver.Chrome):
     return result
 
 
+def get_advertising_platforms(parent_element: WebElement):
+    facebook_style = "width: 12px; height: 12px; -webkit-mask-image: url('https://static.xx.fbcdn.net/rsrc.php/v3/yd/r/tuMP4thDyat.png'); -webkit-mask-size: 26px 716px; -webkit-mask-position: 0px -646px;"
+    instagram_style = "width: 12px; height: 12px; -webkit-mask-image: url('https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/wcAEKoUC9M5.png'); -webkit-mask-size: 30px 696px; -webkit-mask-position: -16px -58px;"
+    audience_network_style = "width: 12px; height: 12px; -webkit-mask-image: url('https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/wcAEKoUC9M5.png'); -webkit-mask-size: 30px 696px; -webkit-mask-position: -16px -58px;"
+    messenger_style = "width: 12px; height: 12px; -webkit-mask-image: url('https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/wcAEKoUC9M5.png'); -webkit-mask-size: 30px 696px; -webkit-mask-position: -16px -58px;"
+
+    platforms = {
+        "Facebook": "false",
+        "Instagram": "false",
+        "Audience Network": "false",
+        "Messenger": "false"
+    }
+
+    try:
+        elements = parent_element.find_elements(By.TAG_NAME, "div")
+    except Exception as e:
+        print(e)
+        return None
+
+    for element in elements:
+    
+        try: style = element.get_attribute("style")
+        except: continue
+
+        if   style == facebook_style:         platforms["Facebook"]         = "true"
+        elif style == instagram_style:        platforms["Instagram"]        = "true"
+        elif style == audience_network_style: platforms["Audience Network"] = "true"
+        elif style == messenger_style:        platforms["Messenger"]        = "true"
+
+    return platforms
+
+
 def get_advertiser_texts(info_block: BeautifulSoup):
     elements = info_block.find_all(text=True)
     return [e.get_text() for e in elements]
 
 
-def extract_company_info(item: list):
+def extract_advertiser_info(item: list):
     try: name = item[0]
     except: return None
 
@@ -61,47 +93,47 @@ def extract_company_info(item: list):
     return {"Name": name, "Description": description, "Website": website}
 
 
-def get_advertiser_info_block( driver: webdriver.Chrome, index: int, number_of_elements: int ) -> BeautifulSoup:  # type: ignore
+def get_advertiser_information ( driver: webdriver.Chrome, index: int, number_of_elements: int ) -> BeautifulSoup:  # type: ignore
     
     xpath_head = "//*[@id='content']/div/div/div/div[5]/div[2]/div[2]/div[4]/div[1]/div"
-    for xpath in get_xpath_for_each_element(xpath_head=xpath_head,
-                                            start=index,
-                                            number_of_elements=number_of_elements):
+    for advertisement_block_xpath in get_xpath_for_each_element(xpath_head=xpath_head,
+                                                                start=index,
+                                                                number_of_elements=number_of_elements):
 
-        try: parent_element = driver.find_element(By.XPATH, xpath)
-        except: yield None
+        try: parent_element = driver.find_element(By.XPATH, advertisement_block_xpath)
+        except: yield None, None
 
-        element_xpath = find_company_name_element_xpath (parent_element=parent_element,
-                                                         parent_element_xpath=xpath)
+        advertiser_information_raw = get_advertiser_information_with_information_block (driver=driver,
+                                                                                        parent_element=parent_element,
+                                                                                        advertisement_block_xpath=advertisement_block_xpath)
+        advertising_platforms      = None
 
-        if xpath is not None:
-            try:
-                element = driver.find_element(By.XPATH, element_xpath)
-                yield hover_element(driver=driver, element=element, xpath=xpath)  # type: ignore
-            except Exception: yield None
+        # if advertiser information found then get advertising platforms 
+        if advertiser_information_raw is not None:
+            advertising_platforms = get_advertising_platforms(parent_element=parent_element)
 
-        yield None
-
+        yield advertiser_information_raw, advertising_platforms
 
 ############################################################################################################
 ########################################## Root scraping function ##########################################
 ############################################################################################################
 def scrape_data(driver, index: int, number_of_elements: int):
-    for info_block_text_list in get_advertiser_info_block(driver=driver, index=index, number_of_elements=number_of_elements):
+    for advertiser_information_raw, advertising_platforms in get_advertiser_information (driver=driver,
+                                                                                               index=index,
+                                                                                               number_of_elements=number_of_elements):
 
         # Skip to the next iteration if info_block is None
-        if info_block_text_list is None:
-            print("WARNING: No information block found on hover.")
-            continue
+        if advertiser_information_raw is None: continue
         
-        # Extract company information from the info_block
-        get_advertiser_text_list = get_advertiser_texts(info_block=info_block_text_list) # type: ignore
-        company_information = extract_company_info(get_advertiser_text_list)
+        # Extract advertiser information from the info_block
+        info_block=advertiser_information_raw
+        get_advertiser_text_list = get_advertiser_texts(info_block=info_block)
+        advertiser_information = extract_advertiser_info(get_advertiser_text_list)
 
-        # Skip to the next iteration if company_info is None
-        if company_information is None:
-            print("WARNING: No company data found.")
-            continue
-
-        print(f"Extracted data of company: {company_information['Name']} | Website link: {company_information['Website']}")
-        yield company_information
+        # Skip to the next iteration if advertiser_info is None
+        if advertiser_information is None: continue
+        
+        if advertising_platforms is not None:
+            advertiser_information.update(advertising_platforms)
+        # print(f"Extracted data of advertiser: {advertiser_information['Name']} | Website link: {advertiser_information['Website']}")
+        yield advertiser_information

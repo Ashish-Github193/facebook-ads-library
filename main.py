@@ -53,13 +53,13 @@ while check_if_start_is_bigger(start_date=start_date_max_itr, end_date=END_DATE)
     except Exception: continue
 
     # creating global variables
-    company_block_iteration_index     = 1
-    company_block_iteration_max_index = get_total_results(driver=driver)
-    csv_column_names                  = ["Name", "Description", "Website"]
-    chunk_of_company_data             = []
+    advertiser_block_iteration_index     = 1
+    advertiser_block_iteration_max_index = get_total_results(driver=driver)
+    csv_column_names                     = ['Name', 'Description', 'Website', 'Facebook', 'Instagram', 'Messenger', 'Audience Network']
+    chunk_of_advertiser_data             = []
 
     # check if no companies found
-    if company_block_iteration_max_index < company_block_iteration_index: continue
+    if advertiser_block_iteration_max_index < advertiser_block_iteration_index: continue
 
     print()
     print()
@@ -68,29 +68,29 @@ while check_if_start_is_bigger(start_date=start_date_max_itr, end_date=END_DATE)
 
     # writing file name and looping the scraper
     filename = f"{COUNTRY}_{query}.csv"
-    while company_block_iteration_index < company_block_iteration_max_index and company_block_iteration_index < MAX_ITERATION_PER_PAGE:
+    while advertiser_block_iteration_index < advertiser_block_iteration_max_index and advertiser_block_iteration_index < MAX_ITERATION_PER_PAGE:
 
         print()
-        print(f"Iteration count: {company_block_iteration_index}")
+        print(f"Iteration count: {advertiser_block_iteration_index}")
 
         # scrape data
-        for company_data in scrape_data(driver=driver,
-                                        index=company_block_iteration_index,
+        for advertiser_data in scrape_data(driver=driver,
+                                        index=advertiser_block_iteration_index,
                                         number_of_elements=30):
 
-            chunk_of_company_data.append(company_data)
-            company_block_iteration_index += 1
+            chunk_of_advertiser_data.append(advertiser_data)
+            advertiser_block_iteration_index += 1
 
         # write scraped data into csv file and clear data list
         write_list_of_dicts_to_csv(headers=csv_column_names,
-                                   data_list=chunk_of_company_data,
+                                   data_list=chunk_of_advertiser_data,
                                    filename=DATA_FOLDER_NAME+filename)
-        chunk_of_company_data = []
+        chunk_of_advertiser_data = []
 
         # loop to check if more data is available
-        while company_block_iteration_index < company_block_iteration_max_index and \
-              company_block_iteration_index < MAX_ITERATION_PER_PAGE and \
-              not check_if_more_data_available(driver=driver, end=company_block_iteration_index):
+        while advertiser_block_iteration_index < advertiser_block_iteration_max_index and \
+              advertiser_block_iteration_index < MAX_ITERATION_PER_PAGE and \
+              not check_if_more_data_available(driver=driver, end=advertiser_block_iteration_index):
 
             sleep(1)
 
