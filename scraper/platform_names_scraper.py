@@ -1,33 +1,31 @@
+from typing                                  import Dict, Optional
 from contextlib                              import suppress
 from selenium.webdriver.common.by            import By
 from selenium.webdriver.remote.webelement    import WebElement
 
-facebook_style         = "width: 12px; height: 12px; -webkit-mask-image: url('https://static.xx.fbcdn.net/rsrc.php/v3/yd/r/tuMP4thDyat.png'); -webkit-mask-size: 26px 716px; -webkit-mask-position: 0px -646px;"
-instagram_style        = "width: 12px; height: 12px; -webkit-mask-image: url('https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/wcAEKoUC9M5.png'); -webkit-mask-size: 30px 696px; -webkit-mask-position: -16px -58px;"
-audience_network_style = "width: 12px; height: 12px; -webkit-mask-image: url('https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/wcAEKoUC9M5.png'); -webkit-mask-size: 30px 696px; -webkit-mask-position: -16px -58px;"
-messenger_style        = "width: 12px; height: 12px; -webkit-mask-image: url('https://static.xx.fbcdn.net/rsrc.php/v3/ym/r/wcAEKoUC9M5.png'); -webkit-mask-size: 30px 696px; -webkit-mask-position: -16px -58px;"
-
-platforms = {
-    "Facebook":         "false",
-    "Instagram":        "false",
-    "Audience Network": "false",
-    "Messenger":        "false"
-}
-
-def get_advertising_platforms(parent_element: WebElement):
-    
+def find_platform_count(parent_element: WebElement) -> int:
     with suppress(Exception):
-        elements = parent_element.find_elements(By.TAG_NAME, "div")
-        for element in elements:
+        sibling = parent_element.find_element(By.XPATH, "//span[text()='Platforms']/following-sibling::*")
+        platform_count = len(sibling.find_elements(By.XPATH, "./*"))
+        return platform_count
 
-            try: style = element.get_attribute("style")
-            except: continue
+    return 0
 
-            if   style == facebook_style:         platforms["Facebook"]         = "true"
-            elif style == instagram_style:        platforms["Instagram"]        = "true"
-            elif style == audience_network_style: platforms["Audience Network"] = "true"
-            elif style == messenger_style:        platforms["Messenger"]        = "true"
+def update_platforms_count(platforms: Dict[str, str], platform_count: int) -> Dict[str, str]:
+    keys = list(platforms.keys())
+    for platform in keys[:platform_count]: platforms[platform] = 'true'
+    return platforms
 
-        return platforms
+def get_advertising_platforms(parent_element: WebElement) -> Optional[Dict[str, str]]:
 
-    return None
+    platform_count = find_platform_count(parent_element)
+    if platform_count == 0: return None
+
+    platforms = {
+        "Facebook":         "false",
+        "Instagram":        "false",
+        "Audience Network": "false",
+        "Messenger":        "false"
+    }
+
+    return update_platforms_count(platforms, platform_count)
