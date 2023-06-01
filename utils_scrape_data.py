@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by      import By
 from scraper.basic_information_scraper import scrape_basic_information
-from scraper.platform_names_scraper import get_advertising_platforms
+from scraper.platform_names_scraper    import get_advertising_platforms
 
 from utils.utils_frequent_function   import *
 from utils.utils_initialise_function import *
@@ -11,7 +11,7 @@ from utils.utils_extras              import merge_dictionaries
 
 def group_scraped_data ( driver: webdriver.Chrome, index: int, number_of_elements: int ) -> BeautifulSoup:  # type: ignore
     
-    xpath_head = "//*[@id='content']/div/div/div/div[5]/div[2]/div[2]/div[4]/div[1]/div"
+    xpath_head = "//div[contains(@class, '_8n_0')]/div[2]/div[4]/div[1]/div"
     for advertisement_xpath in get_xpath_for_each_element(xpath_head=xpath_head,
                                                                 start=index,
                                                                 number_of_elements=number_of_elements):

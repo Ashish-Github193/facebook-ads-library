@@ -3,13 +3,11 @@ from bs4      import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
-def check_if_more_data_available(driver: webdriver.Chrome, end: int) -> bool:
-    try:
-        element_xpath = f"//*[@id='content']/div/div/div/div[5]/div[2]/div[2]/div[4]/div[1]/div[{end+1}]"
-        get_inner_html_by_xpath(driver=driver, xpath=element_xpath)
-        return True
-    except Exception:
-        return False
+
+def check_if_more_data_available(driver: webdriver.Chrome, total: int) -> bool:
+    complete_page = driver.find_element(By.CLASS_NAME, "_8n_0")
+    target_elements_xpath = "./div[2]/div[4]/div[1]/*"
+    return total == len(complete_page.find_elements(By.XPATH, target_elements_xpath))
 
 
 def get_inner_html_by_xpath(driver: webdriver.Chrome, xpath: str) -> BeautifulSoup:
