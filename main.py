@@ -2,33 +2,23 @@ import logging
 from time import sleep
 from math import inf
 from random import randint
+from pytz import country_names
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from utils.utils_date_operations import *
 from utils.utils_initialise_function import *
+from utils.utils_user_handler import get_user_inputs
 from utils_scrape_data import scrape_data
 from utils.utils_frequent_function import check_if_more_data_available
 from utils.utils_extras import get_headers_for_saving_data, write_list_of_dicts_to_csv
 from scraper.get_total_results import total_advertisement_on_current_page
 
-COUNTRY = "IN"
 END_DATE = "2018-05-07"
 MONTH_DIFFERENCE = 1
 DATA_FOLDER_NAME = "data/"
 MAX_ITERATION_PER_PAGE = 150
-
-# Url keywords
-base_url         =  "https://www.facebook.com/ads/library/"
-active_status    =  "active_status=all"
-ad_type          =  "ad_type=all"
-country          = f"country={COUNTRY}"
-query            =  "q=tech"
-search_type      =  "search_type=keyword_unordered"
-media_type       =  "media_type=all"
-start_date_min   =  "start_date[min]="
-start_date_max   =  "start_date[max]="
 
 def prepare_url(base_url, items_list):
     return f"{base_url}?" + "&".join(items_list)
@@ -52,7 +42,19 @@ def check_for_more_data(driver, total_iterations_count):
         check_itr += 1
         sleep(1)
 
-def main():
+def main(country_code, ad_type, search_query):
+
+    # Url keywords
+    base_url         =  "https://www.facebook.com/ads/library/"
+    active_status    =  "active_status=all"
+    ad_type          = f"ad_type={ad_type}"
+    country          = f"country={country_code}"
+    query            = f"q={search_query}"
+    search_type      =  "search_type=keyword_unordered"
+    media_type       =  "media_type=all"
+    start_date_min   =  "start_date[min]="
+    start_date_max   =  "start_date[max]="
+
     start_date_max_itr = get_current_date()
     start_date_min_itr = get_min_date(month_difference=1, max_date=start_date_max_itr)
 
@@ -64,7 +66,7 @@ def main():
 
         # prepare url
         items_list = [active_status, ad_type, country, query, search_type, media_type, start_date, end_date]
-        url = f"{base_url}?" + "&".join(items_list)
+        url        = prepare_url(base_url=base_url, items_list=items_list)
 
         # prepare driver
         driver = initialize_chrome()
@@ -81,7 +83,7 @@ def main():
         print(f"URL: {url}")
         print(f"Scraping data from date: {start_date_min_itr} to date: {start_date_max_itr}", end="\n\n")
 
-        filename = f"{COUNTRY}_{query}.csv"
+        filename = f"{country_code}_{search_query}.csv"
         chunk_of_advertiser_data = []
         iteration_count = 1
         total_iterations_count = MAX_ITERATION_PER_PAGE
@@ -108,4 +110,5 @@ def main():
         start_date_min_itr = get_min_date(month_difference=1, max_date=start_date_max_itr)
 
 if __name__ == "__main__":
-    main()
+    country_code, ad_type, search_query = get_user_inputs().split('-')
+    main(country_code=country_code, ad_type=ad_type, search_query=search_query)
