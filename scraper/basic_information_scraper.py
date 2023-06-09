@@ -16,7 +16,6 @@ def get_advertiser_texts(info_block: BeautifulSoup):
 
 
 def extract_advertiser_info(item: list):
-    print(item)
     try:
         name = item[0]
     except:
@@ -103,9 +102,6 @@ def get_advertiser_information_with_information_block(
         element = driver.find_element(By.XPATH, element_xpath)
         return hover_element(driver=driver, element=element, xpath=advertisement_xpath)  # type: ignore
 
-    logging.warning(
-        f"Message: No ELEMENT found to hover on | Scraper: Basic information scraper | Function: get_advertiser_information_with_information_block | More info: xpath: {element_xpath}"
-    )
     return None
 
 
@@ -123,9 +119,4 @@ def scrape_basic_information(
         advertiser_information = extract_advertiser_info(get_advertiser_text_list)  # type: ignore
 
         return advertiser_information
-
-    logging.warning(
-        "Message: No HTML found | Scraper: Basic information scraper | Function: scrape basic information"
-    )
-    logging.warning(f"#{'-'*30}#")
     return None

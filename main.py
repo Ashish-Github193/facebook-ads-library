@@ -1,4 +1,5 @@
 import logging
+import sys
 from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -12,6 +13,7 @@ from utils_scrape_data import scrape_data
 from utils.utils_frequent_function import check_if_more_data_available
 from utils.utils_extras import (
     get_headers_for_saving_data,
+    show_ip_block_message,
     write_list_of_dicts_to_csv,
     change_date_format,
 )
@@ -44,7 +46,11 @@ def scrape_and_write_data(
         if advertiser_data is not None:
             advertiser_data["Date"] = change_date_format(date_started_in)
             chunk_of_advertiser_data.append(advertiser_data)
+            logging.info(f"Scraped data info: {advertiser_data}")
         iteration_count += 1
+
+    if len(chunk_of_advertiser_data) == 0:
+        logging.warning(f"No data found in month {change_date_format(date_started_in)}")
 
     write_list_of_dicts_to_csv(
         headers=get_headers_for_saving_data(),
@@ -75,7 +81,7 @@ def initialize_driver(url):
 
 
 # Function to check if the main division is found on the page
-def check_main_division(driver):
+def check_main_division(driver):  # sourcery skip: extract-duplicate-method
     try:
         wait = WebDriverWait(driver, 15)
         wait.until(
@@ -88,13 +94,12 @@ def check_main_division(driver):
         )
         return True
     except TimeoutError:
-        # Handle timeout exception
         logging.error("Timeout exception occurred while waiting for the main division.")
         return False
-    except Exception as e:
-        # Handle other exceptions
-        logging.error(f"An error occurred while checking the main division: {str(e)}")
-        return False
+    except Exception:
+        logging.error(show_ip_block_message())
+        driver.quit()
+        sys.exit()
 
 
 # Function to scrape data based on the provided inputs
@@ -138,7 +143,7 @@ def scrape_data_with_inputs(country_code, ad_type, search_query):
 
         # Check if the main division is found on the page
         if not check_main_division(driver):
-            driver.close()
+            driver.quit()
             continue
 
         logging.info(f"URL: {url}")
@@ -186,7 +191,7 @@ def scrape_data_with_inputs(country_code, ad_type, search_query):
             if total_data_after_new_data_arrived - iteration_count < 29:
                 total_iterations_count = total_data_after_new_data_arrived
 
-        driver.close()
+        driver.quit()
 
         # Update the start and end dates for the next iteration
         start_date_max_itr = start_date_min_itr
