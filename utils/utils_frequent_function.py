@@ -1,5 +1,5 @@
 import re
-from bs4      import BeautifulSoup
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
@@ -16,7 +16,9 @@ def get_inner_html_by_xpath(driver: webdriver.Chrome, xpath: str) -> BeautifulSo
     return BeautifulSoup(innerHTML, "html.parser")
 
 
-def get_xpath_for_each_element( start: int, number_of_elements: int, xpath_head: str, xpath_tail="" ):
+def get_xpath_for_each_element(
+    start: int, number_of_elements: int, xpath_head: str, xpath_tail=""
+):
     for iter in range(start, start + number_of_elements + 1):
         yield f"{xpath_head}[{iter}]{xpath_tail}"
 
