@@ -6,10 +6,10 @@ from scraper import platform_names_scraper
 def get_headers_for_saving_data() -> list:
 
     # basic_information_scraper
-    basic_information_scraper_headers = ["Name", "Description", "Website"]
+    basic_information_scraper_headers = ["Name", "Type", "Description", "Website"]
 
     # platform_names_scraper
-    platform_names_scraper_headers    = ["Facebook", "Instagram", "Audience Network", "Messenger"]
+    platform_names_scraper_headers    = ["Facebook", "Instagram", "Audience Network", "Messenger", "Date"]
 
     return basic_information_scraper_headers + platform_names_scraper_headers
 
@@ -29,3 +29,8 @@ def merge_dictionaries(dictionaries):
     for dictionary in dictionaries:
         merged_dict.update(dictionary) # type: ignore
     return merged_dict
+
+def change_date_format(date):
+    date = date.split('-')
+    formatted_date = f"{date[1]}-{date[0]}"
+    return formatted_date

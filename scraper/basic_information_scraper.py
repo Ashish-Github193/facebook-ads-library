@@ -1,4 +1,5 @@
 import logging
+from multiprocessing.util import info
 from bs4        import BeautifulSoup
 from selenium   import webdriver
 from contextlib import suppress
@@ -14,23 +15,37 @@ def get_advertiser_texts(info_block: BeautifulSoup):
     return [e.get_text() for e in elements]
 
 def extract_advertiser_info(item: list):
+    print(item)
     try: name = item[0]
     except: return None
 
-    description = max(item, key=len)
-    if ( "//" in description or "//" not in description and len(filter_text(description)) == 0 ): description = "-"
+    try:
+        advertiser_type = item[1]
+    except Exception:
+        advertiser_type = '-'
 
-    website = next( (e.strip() for e in item if (isinstance(e, str) and e.startswith("http"))), None,)
-    if website is None: return None
+    try:
+        description = item[2]
+        if ( "//" in description or "//" not in description and len(filter_text(description)) == 0 ): description = "-"
+    except Exception:
+        description = '-'
 
-    return {"Name": name, "Description": description, "Website": website}
+    try:
+        website = next( (e.strip() for e in item if (isinstance(e, str) and e.startswith("http"))), None,)
+        if website is None: return None
+    except Exception:
+        return None
 
-def hover_element_if_exists (driver: webdriver.Chrome, element: WebElement, info_block_constructor_xpath: str):
+    return {"Name": name, "Type": advertiser_type, "Description": description, "Website": website}
+
+def hover_element_if_exists(driver: webdriver.Chrome, element: WebElement, info_block_constructor_xpath: str):
     actions = ActionChains(driver)
     actions.move_to_element(element)
     actions.perform()
 
-    return get_inner_html_by_xpath( driver=driver, xpath=info_block_constructor_xpath )
+    relative_xpath = "/div/div[1]/div[1]/div/div/div[1]/div[2]"
+    element = driver.find_element(By.XPATH, info_block_constructor_xpath+relative_xpath)
+    return get_inner_html_by_xpath( driver=driver, xpath=info_block_constructor_xpath+relative_xpath)
 
 def hover_element( driver: webdriver.Chrome, element: WebElement, xpath: str ):    
 
