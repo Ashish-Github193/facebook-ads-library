@@ -16,8 +16,8 @@ def group_scraped_data(driver: webdriver.Chrome, index: int, number_of_elements:
     ):
         try:
             parent_element = driver.find_element(By.XPATH, advertisement_xpath)
-        except:
-            yield [None, None]
+        except Exception:
+            yield [None, None] # type: ignore
 
         advertiser_basic_information = scrape_basic_information(
             driver=driver,

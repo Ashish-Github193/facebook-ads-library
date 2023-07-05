@@ -1,4 +1,3 @@
-import logging
 from multiprocessing.util import info
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -18,7 +17,7 @@ def get_advertiser_texts(info_block: BeautifulSoup):
 def extract_advertiser_info(item: list):
     try:
         name = item[0]
-    except:
+    except Exception:
         return None
 
     try:
@@ -116,7 +115,5 @@ def scrape_basic_information(
 
     if html is not None:
         get_advertiser_text_list = get_advertiser_texts(info_block=html)
-        advertiser_information = extract_advertiser_info(get_advertiser_text_list)  # type: ignore
-
-        return advertiser_information
+        return extract_advertiser_info(get_advertiser_text_list)
     return None

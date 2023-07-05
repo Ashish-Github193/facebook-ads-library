@@ -1,4 +1,4 @@
-myenv/
+venv/
 *__pycache__
 *tempCodeRunnerFile.python
 cspell.json

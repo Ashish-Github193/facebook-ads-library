@@ -9,9 +9,7 @@ def find_platform_count(parent_element: WebElement) -> int:
         sibling = parent_element.find_element(
             By.XPATH, "//span[text()='Platforms']/following-sibling::*"
         )
-        platform_count = len(sibling.find_elements(By.XPATH, "./*"))
-        return platform_count
-
+        return len(sibling.find_elements(By.XPATH, "./*"))
     return 0
 
 

@@ -1,4 +1,3 @@
-import logging
 import sys
 from time import sleep
 from selenium.webdriver.common.by import By
@@ -12,6 +11,7 @@ from utils.utils_user_handler import get_user_inputs
 from utils_scrape_data import scrape_data
 from utils.utils_frequent_function import check_if_more_data_available
 from utils.utils_extras import (
+    delete_all_file_from_data_dir,
     get_headers_for_saving_data,
     show_ip_block_message,
     write_list_of_dicts_to_csv,
@@ -46,11 +46,11 @@ def scrape_and_write_data(
         if advertiser_data is not None:
             advertiser_data["Date"] = change_date_format(date_started_in)
             chunk_of_advertiser_data.append(advertiser_data)
-            logging.info(f"Scraped data info: {advertiser_data}")
+            print(f"Scraped data info: {advertiser_data}")
         iteration_count += 1
 
     if len(chunk_of_advertiser_data) == 0:
-        logging.warning(f"No data found in month {change_date_format(date_started_in)}")
+        print(f"No data found in month {change_date_format(date_started_in)}")
 
     write_list_of_dicts_to_csv(
         headers=get_headers_for_saving_data(),
@@ -81,7 +81,7 @@ def initialize_driver(url):
 
 
 # Function to check if the main division is found on the page
-def check_main_division(driver):  # sourcery skip: extract-duplicate-method
+def check_main_division(driver):
     try:
         wait = WebDriverWait(driver, 15)
         wait.until(
@@ -94,10 +94,11 @@ def check_main_division(driver):  # sourcery skip: extract-duplicate-method
         )
         return True
     except TimeoutError:
-        logging.error("Timeout exception occurred while waiting for the main division.")
+        print("Network is too slow. Please connect to a different network.")
         return False
     except Exception:
-        logging.error(show_ip_block_message())
+        print(show_ip_block_message())
+        input('\n\n\nType anything to kill the program: ')
         driver.quit()
         sys.exit()
 
@@ -146,8 +147,8 @@ def scrape_data_with_inputs(country_code, ad_type, search_query):
             driver.quit()
             continue
 
-        logging.info(f"URL: {url}")
-        logging.info(
+        print(f"URL: {url}")
+        print(
             f"Scraping data from date: {start_date_min_itr} to date: {start_date_max_itr}",
             end="\n\n",
         )
@@ -167,7 +168,7 @@ def scrape_data_with_inputs(country_code, ad_type, search_query):
 
         # Start iterating over the data on the page
         while iteration_count < total_iterations_count:
-            logging.info(
+            print(
                 f"\nIteration start; total_data: {total_iterations_count}; iteration count: {iteration_count};"
             )
 
@@ -201,10 +202,13 @@ def scrape_data_with_inputs(country_code, ad_type, search_query):
 
 
 # Entry point of the script
+import contextlib
 if __name__ == "__main__":
     # Get user inputs
     country_code, ad_type, search_query = get_user_inputs().split("-")
+    delete_all_file_from_data_dir(DATA_FOLDER_NAME)
     # Call the scrape_data_with_inputs function
-    scrape_data_with_inputs(
-        country_code=country_code, ad_type=ad_type, search_query=search_query
-    )
+    with contextlib.suppress(Exception):
+        scrape_data_with_inputs(
+            country_code=country_code, ad_type=ad_type, search_query=search_query
+        )
